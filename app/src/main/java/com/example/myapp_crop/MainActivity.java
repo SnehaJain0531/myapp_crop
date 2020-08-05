@@ -1,64 +1,63 @@
 package com.example.myapp_crop;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.net.Uri;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.support.annotation.Nullable;
+import android.support.graphics.drawable.Animatable2Compat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
 
-import com.scanlibrary.ScanActivity;
-import com.scanlibrary.ScanConstants;
-
-import java.io.IOException;
-import java.util.EventListener;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 
 public class MainActivity extends AppCompatActivity {
-    int REQUEST_CODE = 99;
-    ImageView scanPic;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getSupportActionBar().hide();
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
-        Button scancam = findViewById(R.id.button);
-        Button scanmedia=findViewById(R.id.button3);
-
-        scanPic=findViewById(R.id.imageView);
-        scanmedia.setOnClickListener(new View.OnClickListener() {
+        ImageView imageView=findViewById(R.id.gif);
+        Button skip=findViewById(R.id.button2);
+        skip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, ScanActivity.class);
-                intent.putExtra(ScanConstants.OPEN_INTENT_PREFERENCE, ScanConstants.OPEN_MEDIA);
-                startActivityForResult(intent, REQUEST_CODE);
-            }
-        });
-        scancam.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, ScanActivity.class);
-                intent.putExtra(ScanConstants.OPEN_INTENT_PREFERENCE, ScanConstants.OPEN_CAMERA);
-                startActivityForResult(intent, REQUEST_CODE);
+                Intent i=new Intent(MainActivity.this,MainActivity2.class);
+                startActivity(i);
             }
         });
 
-    }
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE && resultCode == MainActivity.RESULT_OK) {
-            Uri uri = data.getExtras().getParcelable(ScanConstants.SCANNED_RESULT);
-            Bitmap bitmap = null;
-            try {
-                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                getContentResolver().delete(uri, null, null);
-                scanPic.setImageBitmap(bitmap);
-            } catch (IOException e) {
-                Toast.makeText(MainActivity.this,e.getMessage(),Toast.LENGTH_SHORT).show();
-                e.printStackTrace();
+        Glide.with(this).asGif().load(R.drawable.userdemo).listener(new RequestListener<GifDrawable>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+                return false;
             }
-        }
+
+            @Override
+            public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+                resource.setLoopCount(1);
+                resource.registerAnimationCallback(new Animatable2Compat.AnimationCallback() {
+                    @Override
+                    public void onAnimationEnd(Drawable drawable) {
+                 Intent i=new Intent(MainActivity.this,MainActivity2.class);
+                 startActivity(i);
+                    }
+                });
+                return false;
+            }
+        }).into(imageView);
+
     }
+
 }
